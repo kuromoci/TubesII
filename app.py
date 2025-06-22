@@ -12,7 +12,16 @@ app = Flask(
   static_folder=os.path.join(BASE_DIR, 'style'),
   static_url_path='/css')
 
-app.secret_key = os.urandom(24).hex()
+app.secret_key = os.environ.get('FLASK_SECRET_KEY')
+
+if not app.secret_key:
+    # Pada produksi, ini akan menyebabkan aplikasi crash jika FLASK_SECRET_KEY tidak diset
+    # Pada development, Anda bisa memberikan default sementara yang kurang aman atau memastikan .env ada
+    print("WARNING: FLASK_SECRET_KEY not set! Sessions will not be secure.")
+    # Untuk pengembangan lokal, bisa juga:
+    # app.secret_key = 'super_insecure_key_for_dev_only'
+    # Atau raise RuntimeError untuk memaksakan setting environment variable
+    raise RuntimeError("FLASK_SECRET_KEY environment variable not set. A secret key is required to use sessions.")
 
 ESP32_IP = 'IP ADDRESS'
 
