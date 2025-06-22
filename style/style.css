@@ -17,8 +17,7 @@ label,
 select,
 textarea {
     font-family: 'Inter', sans-serif;
-    /* Opsional: Jika Anda ingin font-size default yang sama untuk form elements */
-    /* font-size: inherit; */
+    /* font-size: inherit; */ /* Opsional: Jika Anda ingin font-size default yang sama untuk form elements */
 }
 
 /* Navigation Bar */
@@ -54,6 +53,8 @@ textarea {
 .main-content {
     flex-grow: 1; /* flex-grow */
     padding-top: 40px; /* pt-10 */
+    /* --- PERBAIKAN: margin-left harus punya unit (misal px) atau dihapus jika tidak diinginkan --- */
+    /* margin-left: 40px; */ /* Dihapus atau tambahkan unit jika ingin indentasi */
     text-align: center;
     color: #e0e0e0; /* Neutral-200 */
     font-weight: bold;
@@ -66,16 +67,21 @@ textarea {
     margin-bottom: 24px; /* mb-6 */
 }
 
-/* Grid Layout for Dashboard Cards */
-.dashboard-grid {
+/* --- PERBAIKAN: Grid Layout for Dashboard Cards (sesuaikan dengan HTML baru) --- */
+/* Nama kelas diubah menjadi .dashboard-grid-simple seperti di HTML yang baru */
+.dashboard-grid-simple {
     display: grid;
-    grid-template-columns: repeat(6, 1fr); /* grid-cols-6 */
+    /* Sekarang hanya 3 kolom untuk Volt, Current, Power */
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px 40px; /* gap-y-4 px-20 gap-x-10 (approx) */
-    padding: 0 80px; /* px-20 (160px total padding, 80px each side) */
+    padding: 0 80px; /* px-20 */
     width: 100%;
-    max-width: 1200px; /* Batasi lebar agar tidak terlalu lebar di layar besar */
+    max-width: 1200px;
     margin: 0 auto; /* Tengah */
-    height: 640px; /* h-160 (160 * 4px = 640px) */
+    /* min-height tidak lagi fixed 640px karena chart dihapus, biarkan konten menentukan */
+    /* min-height: calc(100vh - 60px - 60px - 40px - 24px); /* (vh - navbar - footer - pt-10 - mb-6) approx */
+    align-items: start; /* Pastikan item dimulai dari atas */
+    box-sizing: border-box; /* Pastikan padding dihitung dalam lebar */
 }
 
 /* Individual Dashboard Cards */
@@ -85,7 +91,15 @@ textarea {
     border-radius: 16px; /* rounded-2xl */
     padding: 16px; /* p-4 */
     display: flex;
-    grid-column: span 2 / span 2;
+    /* --- PERBAIKAN: Ganti column-span dengan grid-column --- */
+    /* Karena sudah 3 kolom di grid-template-columns, span 1 sudah cukup */
+    /* Jika ingin kartu tetap 2 kolom, maka grid-template-columns harus tetap 6 dan digipot/relay ambil 4 */
+    /* Saya akan asumsikan Anda ingin setiap kartu mengambil 1 kolom di grid 3-kolom yang baru */
+    grid-column: span 1 / span 1; /* Setiap kartu ambil 1 kolom dari 3 yang tersedia */
+    /* Atau hapus baris ini jika mereka otomatis mengambil 1fr */
+    /* Jika Anda ingin 3 kartu mengisi 6 kolom (misal 2 kolom per kartu), kembalikan grid-template-columns ke 6 dan grid-column ke span 2 */
+    /* grid-column: span 2 / span 2; */ /* Uncomment ini jika dashboard-grid-simple kembali 6 kolom */
+    /* --- END PERBAIKAN --- */
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
@@ -113,315 +127,19 @@ textarea {
 .power-text { color: #fbbf24; } /* Amber-400 */
 .digipot-text { color: #a855f7; } /* Purple-400 */
 
-/* Chart Card */
-.chart-card {
-    grid-column: span 4 / span 4; /* col-span-4 */
-    height: 440px; /* h-120 (120 * 4px = 480px) */
-    background-color: #171717; /* Neutral-900 */
-    border-radius: 16px; /* rounded-2xl */
-    padding: 20px; /* p-5 */
-    display: flex;
-    flex-direction: column;
-}
-
-.chart-card h1 {
-    font-size: 18px; /* text-xl */
-    margin-bottom: 16px; /* mb-4 */
-}
-
-.chart-container {
-    position: relative;
-    flex-grow: 1; /* flex-grow */
-}
-
-/* Control Sections (Digipot & Relay) */
-.control-section-grid {
-    grid-column: span 2 / span 2; /* col-span-2 */
+/* --- PERBAIKAN: Control Sections (Digipot & Relay) - kelas baru --- */
+.control-section-full-row { /* Kelas baru yang saya sarankan di HTML */
+    grid-column: span 3 / span 3; /* Ini akan membuat kontrol menempati seluruh lebar grid (3 kolom) */
+    background-color: #171717;
+    padding: 20px;
+    padding-bottom: 30px;
+    border-radius: 16px;
     display: grid;
-    grid-template-rows: repeat(2, 1fr); /* grid-rows-2 */
-    gap: 16px; /* gap-4 */
-    height: 480px; /* h-120 */
+    grid-template-columns: repeat(2, 1fr); /* Kontrol Digipot dan Relay berdampingan */
+    gap: 40px; /* Jarak antar Digipot & Relay, disesuaikan dari gap-x-10 */
+    margin-top: 16px; 
 }
 
-.control-card {
-    background-color: #171717; /* Neutral-900 */
-    width: auto;
-    height: 100%;
-    border-radius: 16px; /* rounded-2xl */
-    padding: 16px 20px; /* pt-4 p-5 (approx) */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-sizing: border-box;
-}
-
-.control-card h1 {
-    font-size: 18px; /* text-xl */
-    margin-bottom: 16px; /* mb-4 */
-    text-align: center;
-}
-
-/* Form Styles */
-.control-form {
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-    justify-content: space-around;
-}
-
-.control-form label {
-    display: block;
-    color: #d4d4d4; /* Neutral-300 */
-    font-size: 18px; /* text-lg */
-    font-weight: 500; /* font-medium */
-    margin-bottom: 8px; /* mb-2 */
-}
-
-/* Range Slider Styling */
-input[type="range"] {
-    width: 100%;
-    height: 8px;
-    background: #4b5563; /* Gray-600 (track color) */
-    border-radius: 5px;
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    transition: opacity .2s;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #3b82f6; /* Blue-600 */
-    cursor: pointer;
-}
-
-input[type="range"]::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #3b82f6; /* Blue-600 */
-    cursor: pointer;
-}
-
-.range-output {
-    text-align: center;
-    font-size: 20px; /* text-xl */
-    font-weight: bold;
-    margin-top: 8px; /* mt-2 */
-}
-
-/* Submit Button */
-.submit-btn {
-    background-color: #2563eb; /* Blue-600 */
-    color: white;
-    font-weight: bold;
-    padding: 8px 16px; /* py-2 px-4 */
-    border-radius: 8px; /* rounded-lg */
-    transition: background-color 0.2s ease-in-out;
-    border: none;
-    cursor: pointer;
-    margin-top: 16px; /* mt-4 */
-}
-
-.submit-btn:hover {
-    background-color: #1d4ed8; /* Blue-700 */
-}
-
-/* Message Spans */
-.message-span {
-    text-align: center;
-    font-size: 12px; /* text-xs */
-    margin-top: 8px; /* mt-2 */
-}
-
-.message-span.text-yellow-500 { color: #facc15; }
-.message-span.text-green-500 { color: #22c55e; }
-.message-span.text-red-500 { color: #ef4444; }
-
-
-/* Relay Control Specifics */
-.relay-control-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px; /* gap-4 */
-    margin: auto 0; /* my-auto */
-    flex-grow: 1; /* Ensures it takes available space */
-    justify-content: center;
-}
-
-.relay-status {
-    font-size: 20px; /* text-xl */
-    font-weight: bold;
-    margin-bottom: 8px; /* mb-2 */
-    padding: 8px 16px; /* px-4 py-2 */
-    border-radius: 9999px; /* rounded-full */
-    white-space: nowrap; /* Mencegah teks wrapping */
-}
-
-.relay-status-on {
-    background-color: #dcfce7; /* Green-100 */
-    color: #15803d; /* Green-700 */
-}
-
-.relay-status-off {
-    background-color: #fee2e2; /* Red-100 */
-    color: #b91c1c; /* Red-700 */
-}
-
-.relay-buttons {
-    display: flex;
-    gap: 16px; /* space-x-4 */
-}
-
-.relay-on-btn {
-    background-color: #22c55e; /* Green-500 */
-    color: white;
-    font-weight: bold;
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: background-color 0.2s ease-in-out;
-    border: none;
-    cursor: pointer;
-}
-
-.relay-on-btn:hover {
-    background-color: #16a34a; /* Green-600 */
-}
-
-.relay-off-btn {
-    background-color: #ef4444; /* Red-500 */
-    color: white;
-    font-weight: bold;
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: background-color 0.2s ease-in-out;
-    border: none;
-    cursor: pointer;
-}
-
-.relay-off-btn:hover {
-    background-color: #dc2626; /* Red-600 */
-}
-
-/* Footer */
-.footer {
-    background-color: #171717; /* Neutral-900 */
-    width: 100%;
-    height: 60px; /* H-15 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #e0e0e0; /* Neutral-200 */
-    padding-top: 4px; /* pt-1 */
-    font-size: 14px; /* text-sm */
-}
-
-/* === Login Page Specific Styles === */
-.login-body {
-    background-image: linear-gradient(to bottom, #292524, #262626); /* stone-900 ke neutral-800 */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    color: #e0e0e0;
-}
-
-.login-container {
-    background-color: #171717; /* Neutral-900 */
-    padding: 40px;
-    border-radius: 16px; /* rounded-2xl */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-    box-sizing: border-box;
-}
-
-.login-container h1 {
-    font-size: 30px; /* text-3xl */
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 24px; /* mb-6 */
-    color: #e0e0e0;
-}
-
-.login-form-group {
-    margin-bottom: 16px; /* mb-4 */
-}
-
-.login-form-group label {
-    display: block;
-    font-size: 16px; /* text-base */
-    font-weight: 500; /* font-medium */
-    color: #d4d4d4; /* Neutral-300 */
-    margin-bottom: 8px; /* mb-2 */
-}
-
-.login-form-group input[type="text"],
-.login-form-group input[type="password"] {
-    width: 100%;
-    padding: 10px 12px; /* px-3 py-2 */
-    border-radius: 8px; /* rounded-lg */
-    border: 1px solid #3f3f46; /* Zinc-700 */
-    background-color: #262626; /* Neutral-800 */
-    color: #e0e0e0;
-    box-sizing: border-box; /* Ensures padding doesn't increase width */
-    font-size: 16px;
-}
-
-.login-form-group input[type="text"]:focus,
-.login-form-group input[type="password"]:focus {
-    outline: none;
-    border-color: #3b82f6; /* Blue-500 */
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* Ring-2 */
-}
-
-.login-submit-btn {
-    width: 100%;
-    background-color: #2563eb; /* Blue-600 */
-    color: white;
-    font-weight: bold;
-    padding: 10px 16px; /* py-2.5 px-4 */
-    border-radius: 8px; /* rounded-lg */
-    transition: background-color 0.2s ease-in-out;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.login-submit-btn:hover {
-    background-color: #1d4ed8; /* Blue-700 */
-}
-
-.login-error-message {
-    color: #ef4444; /* Red-500 */
-    font-size: 14px; /* text-sm */
-    text-align: center;
-    margin-top: 16px; /* mt-4 */
-}
-
-/* Placeholder color for non-Tailwind CSS */
-input::placeholder {
-  color: #9ca3af; /* Warna abu-abu yang lebih terang */
-  opacity: 1; /* Pastikan opacity penuh */
-}
-
-/* For Webkit browsers (Chrome, Safari, Edge) */
-input::-webkit-input-placeholder {
-  color: #9ca3af;
-}
-
-/* For Mozilla Firefox */
-input::-moz-placeholder {
-  color: #9ca3af;
-  opacity: 1; /* Firefox default is often less than 1 */
-}
-
-/* For Internet Explorer 10-11 */
-input:-ms-input-placeholder {
-  color: #9ca3af;
+footer {
+  text-align: center;
 }

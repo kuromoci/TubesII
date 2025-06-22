@@ -9,10 +9,7 @@
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6TaYgqgpfmYVft+tvUfpecsGaQfaIIkwdVNnSfNTw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.umd.min.js"></script>
-
-</head>
+  </head>
 <body>
   <nav class="navbar">
     <div class="navbar-brand">
@@ -27,36 +24,29 @@
 
   <div class="main-content"> 
     <h1 class="dashboard-title">DASHBOARD MONITORING</h1>
-    <div class="dashboard-grid">
+    <div class="dashboard-grid-simple">
       
-      <div class="dashboard-card col-span-2">
+      <div class="dashboard-card">
         <span>VOLTAGE</span>
         <h2 id="liveVoltage" class="voltage-text">{{ data.load_voltage | default(0.0) | round(2) }} V</h2>
         <span class="label">Battery Voltage</span>
       </div>
       
-      <div class="dashboard-card col-span-2">
+      <div class="dashboard-card">
         <span>CURRENT</span>
         <h2 id="liveCurrent" class="current-text">{{ data.current_mA | default(0.0) | round(2) }} mA</h2>
         <span class="label">Battery Current</span>
       </div>
       
-      <div class="dashboard-card col-span-2">
+      <div class="dashboard-card">
         <span>POWER</span>
         <h2 id="livePower" class="power-text">{{ data.power_W | default(0.0) | round(2) }} W</h2>
         <span class="label">Battery Power</span>
       </div>
       
-      <div class="chart-card">
-        <h1>GRAPH (Voltage, Current, Power)</h1>
-        <div class="chart-container">
-            <canvas id="energyChart"></canvas>
-        </div>
-      </div>
-      
-      <div class="control-section-grid">
-        <div class="control-card">
-          <h1>DIGIPOT CONTROL</h1>
+      <div class="control-section-full-row">
+        <div class="control-card control-card-expanded">
+          <h1>THRESHOLD CONTROL (Digipot)</h1>
           <form id="digipotControlForm" class="control-form">
             <div class="form-group">
                 <label for="digipot_slider">Wiper Position (0-99):</label>
@@ -73,8 +63,8 @@
           </form>
         </div>
         
-        <div class="control-card">
-            <h1>RELAY CONTROL</h1>
+        <div class="control-card control-card-expanded">
+            <h1>POWER CONTROL (Relay)</h1>
             <div class="relay-control-content">
                 <span id="relayStatusDisplay" class="relay-status 
                     {% if data.relay_status == 'ON' %} relay-status-on
@@ -102,274 +92,5 @@
     </div>
   </footer>
 
-  <script>
-    const esp32Ip = "{{ esp32_ip }}"; 
-
-    const dataDisplayElements = {
-        busVoltage: document.getElementById('liveVoltage'),
-        current_mA: document.getElementById('liveCurrent'),
-        power: document.getElementById('livePower'), 
-        relayStatus: document.getElementById('relayStatusDisplay'),
-        digipotOutput: document.getElementById('digipotOutput'), 
-        displayTargetDigipot: document.getElementById('digipot_slider'), 
-    };
-    
-    const digipotControlMessage = document.getElementById('digipotControlMessage');
-    const relayControlMessage = document.getElementById('relayControlMessage');
-
-    const ctx = document.getElementById('energyChart').getContext('2d');
-    const chartData = {
-        labels: [], 
-        datasets: [
-            {
-                label: 'Voltage (V)',
-                data: [],
-                borderColor: 'rgb(59, 130, 246)', 
-                backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                tension: 0.1,
-                fill: false,
-                yAxisID: 'yVoltage'
-            },
-            {
-                label: 'Current (mA)',
-                data: [],
-                borderColor: 'rgb(34, 197, 94)', 
-                backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                tension: 0.1,
-                fill: false,
-                yAxisID: 'yCurrent'
-            },
-            {
-                label: 'Power (W)',
-                data: [],
-                borderColor: 'rgb(245, 158, 11)', 
-                backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                tension: 0.1,
-                fill: false,
-                yAxisID: 'yPower'
-            }
-        ]
-    };
-
-    const energyChart = new Chart(ctx, {
-        type: 'line',
-        data: chartData,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    type: 'time', 
-                    time: {
-                        unit: 'second', 
-                        displayFormats: {
-                            second: 'HH:mm:ss' 
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Time',
-                        color: '#A0AEC0' 
-                    },
-                    ticks: {
-                        color: '#A0AEC0' 
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)' 
-                    }
-                },
-                yVoltage: {
-                    type: 'linear',
-                    position: 'left',
-                    title: {
-                        display: true,
-                        text: 'Voltage (V)',
-                        color: '#3B82F6' 
-                    },
-                    min: 0, 
-                    max: 10, 
-                    ticks: {
-                        color: '#A0AEC0' 
-                    },
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    }
-                },
-                yCurrent: {
-                    type: 'linear',
-                    position: 'right',
-                    title: {
-                        display: true,
-                        text: 'Current (mA)',
-                        color: '#22C55E' 
-                    },
-                    min: 0,
-                    max: 1500, 
-                    ticks: {
-                        color: '#A0AEC0'
-                    },
-                    grid: {
-                        drawOnChartArea: false, 
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    }
-                },
-                yPower: {
-                    type: 'linear',
-                    position: 'right', 
-                    title: {
-                        display: true,
-                        text: 'Power (W)',
-                        color: '#F59E0B' 
-                    },
-                    min: 0,
-                    max: 10, 
-                    ticks: {
-                        color: '#A0AEC0'
-                    },
-                    grid: {
-                        drawOnChartArea: false,
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#A0AEC0' 
-                    }
-                }
-            }
-        }
-    });
-
-    const digipotSlider = document.getElementById('digipot_slider');
-    const digipotOutput = document.getElementById('digipotOutput');
-
-    digipotSlider.addEventListener('input', () => {
-        digipotOutput.value = digipotSlider.value;
-    });
-
-    document.getElementById('digipotControlForm').addEventListener('submit', async function(event) {
-        event.preventDefault(); 
-        const formData = new FormData(this);
-        const dataToSend = {
-            digipot_value: parseInt(formData.get('digipot_value'))
-        };
-        await sendCommand('/update_digipot', dataToSend, digipotControlMessage);
-    });
-
-    async function controlRelay(status) {
-        const dataToSend = { status: status };
-        await sendCommand('/control_relay', dataToSend, relayControlMessage);
-    }
-
-    async function sendCommand(endpoint, data, messageElement) {
-        messageElement.textContent = 'Sending...';
-        messageElement.className = 'message-span text-yellow-500'; 
-
-        try {
-            const response = await fetch(`${window.location.protocol}//${window.location.host}${endpoint}`, { 
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-                messageElement.textContent = result.message || 'Command sent successfully!';
-                messageElement.className = 'message-span text-green-500'; 
-            } else {
-                messageElement.textContent = 'Error: ' + (result.error || response.statusText);
-                messageElement.className = 'message-span text-red-500'; 
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            messageElement.textContent = 'Network error or Flask backend not reachable.';
-            messageElement.className = 'message-span text-red-500'; 
-        }
-        setTimeout(() => messageElement.textContent = '', 3000); 
-    }
-
-    async function getLiveData() {
-        try {
-            const response = await fetch(`${window.location.protocol}//${window.location.host}/get_live_data`); 
-            if (!response.ok) {
-                // If not logged in, the Flask backend will return 401. Handle this gracefully.
-                if (response.status === 401) {
-                    // Do nothing or display a message that data is not available when logged out
-                    console.warn("Not logged in. Live data not fetched.");
-                    // Optionally, clear existing data or redirect to login
-                    // window.location.href = '/login'; 
-                    return; // Stop further processing if not logged in
-                }
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            
-            dataDisplayElements.busVoltage.textContent = data.load_voltage.toFixed(2) + ' V'; 
-            dataDisplayElements.current_mA.textContent = data.current_mA.toFixed(2) + ' mA';
-            dataDisplayElements.power.textContent = data.power_W.toFixed(2) + ' W'; 
-            
-            dataDisplayElements.relayStatus.textContent = 'STATUS: ' + data.relay_status;
-            dataDisplayElements.relayStatus.classList.remove('relay-status-on', 'relay-status-off');
-            if (data.relay_status === 'ON') {
-                dataDisplayElements.relayStatus.classList.add('relay-status-on');
-            } else {
-                dataDisplayElements.relayStatus.classList.add('relay-status-off');
-            }
-
-            if (typeof data.digipot_value !== 'undefined' && data.digipot_value !== null) {
-                dataDisplayElements.digipotOutput.value = parseInt(data.digipot_value);
-                dataDisplayElements.displayTargetDigipot.value = data.digipot_value;
-            } else {
-                dataDisplayElements.digipotOutput.value = 'N/A';
-                dataDisplayElements.displayTargetDigipot.value = 50; 
-            }
-            
-            const now = new Date();
-            chartData.labels.push(now);
-            chartData.datasets[0].data.push(data.load_voltage);
-            chartData.datasets[1].data.push(data.current_mA);
-            chartData.datasets[2].data.push(data.power_W); 
-            
-            const maxDataPoints = 30; 
-            if (chartData.labels.length > maxDataPoints) {
-                chartData.labels.shift();
-                chartData.datasets[0].data.shift();
-                chartData.datasets[1].data.shift();
-                chartData.datasets[2].data.shift();
-            }
-            
-            energyChart.update(); 
-            
-        } catch (error) {
-            console.error("Could not fetch live data:", error);
-            // Don't clear data immediately if it's a 401, only if other network errors.
-            if (!(error.message && error.message.includes('401'))) {
-                for (let key in dataDisplayElements) {
-                    if (dataDisplayElements[key].id.startsWith('live')) {
-                        dataDisplayElements[key].textContent = 'N/A';
-                    } else if (dataDisplayElements[key].id === 'relayStatusDisplay') {
-                        dataDisplayElements[key].textContent = 'STATUS: OFFLINE';
-                        dataDisplayElements[key].classList.remove('relay-status-on');
-                        dataDisplayElements[key].classList.add('relay-status-off');
-                    } else if (dataDisplayElements[key].id === 'digipotOutput') {
-                        dataDisplayElements[key].value = 'N/A';
-                    }
-                }
-            }
-        }
-    }
-
-    setInterval(getLiveData, 3000); 
-    getLiveData(); 
-
-    const initialDigipotSliderValue = document.getElementById('digipot_slider').value;
-    if (initialDigipotSliderValue) {
-        dataDisplayElements.digipotOutput.value = parseInt(initialDigipotSliderValue);
-    } else {
-        dataDisplayElements.digipotOutput.value = '50';
-    }
-  </script>
-</body>
+  </body>
 </html>
